@@ -19,23 +19,32 @@ from backend.email_service import send_contact_notification
 from backend.ai_service import improve_bullet_points, generate_summary, get_ai_ats_feedback
 
 
+BASE_DIR = os.path.abspath(os.path.dirname(__file__))
+STATIC_DIR = os.path.join(BASE_DIR, "static")
+TEMPLATE_DIR = os.path.join(BASE_DIR, "templates")
+
 IS_VERCEL = bool(os.getenv("VERCEL"))
 if IS_VERCEL:
     DATABASE = "/tmp/app.db"
     UPLOAD_DIR = "/tmp/uploads"
     GENERATED_DIR = "/tmp/generated_resumes"
 else:
-    BASE_DIR = os.path.abspath(os.path.dirname(__file__))
     DATABASE = os.path.join(BASE_DIR, "database", "app.db")
     UPLOAD_DIR = os.path.join(BASE_DIR, "uploads")
     GENERATED_DIR = os.path.join(BASE_DIR, "generated_resumes")
 ALLOWED_EXTENSIONS = {"pdf", "docx", "txt"}
 MAX_CONTENT_LENGTH = 8 * 1024 * 1024
 
-app = Flask(__name__)
+app = Flask(
+    __name__,
+    template_folder=TEMPLATE_DIR,
+    static_folder=STATIC_DIR,
+    static_url_path="/static"
+)
 app.config["SECRET_KEY"] = os.getenv("SECRET_KEY", "change-this-development-secret")
 app.config["MAX_CONTENT_LENGTH"] = MAX_CONTENT_LENGTH
 app.config["UPLOAD_FOLDER"] = UPLOAD_DIR
+app.config["SEND_FILE_MAX_AGE_DEFAULT"] = 43200
 os.makedirs(os.path.dirname(DATABASE), exist_ok=True)
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 os.makedirs(GENERATED_DIR, exist_ok=True)
